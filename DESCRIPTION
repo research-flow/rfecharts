@@ -11,3 +11,17 @@ LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Depends:
+    R (>= 4.1.0)
+Imports:
+    cli,
+    dplyr,
+    tidyr,
+    readr,
+    stringr,
+    broom,
+    pacman,
+    tibble,
+    purrr,
+    S7
+
