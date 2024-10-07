@@ -2,11 +2,6 @@ library(tidyverse)
 
 test_data <- readRDS(here::here("test", "data_konc.RDS"))
 
-
-rf_name_cleaner <- name_cleaner()
-rf_color <- color()
-rf_theme <- rf_echarts_theme
-
 chart_input <- test_data |>
   filter(
          CSOP1 == first(CSOP1),
@@ -35,15 +30,14 @@ chart_input <- test_data |>
   )
 
 chart_input |>
-  ec_concentration(x = name, n_patient = BETEG_kum,
+  RFecharts::ec_concentration(x = name, n_patient = BETEG_kum,
                    cumn_patient = BETEG_kum, p_patient = BETEG_szazalek,
                    patient_per_doctor = BETEG_PER_ORVOS,
-                   name_cleaner = rf_name_cleaner,
-                   color = rf_color,
-                   theme = rf_theme
-                   )
+                   as_json = F,
+                   nc = RFecharts::name_cleaner()
+   )
 
-rf_eng_names <- rf_name_cleaner
+rf_eng_names <- RFecharts::name_cleaner()
 rf_eng_names@language <- "eng"
 
 
@@ -51,7 +45,5 @@ chart_input |>
   ec_concentration(x = name, n_patient = BETEG_kum,
                    cumn_patient = BETEG_kum, p_patient = BETEG_szazalek,
                    patient_per_doctor = BETEG_PER_ORVOS,
-                   name_cleaner = rf_eng_names,
-                   color = rf_color,
-                   theme = rf_theme
+                   nc = rf_eng_names
   )
