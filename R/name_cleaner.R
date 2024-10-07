@@ -11,7 +11,7 @@ name_cleaner <- S7::new_class(
     ),
     prettify = S7::new_property(getter = function(self) {
       \(x) {
-        keys_chr <- pull(self@keys, self@pretty_name_col, name = code_name)
+        keys_chr <- dplyr::pull(self@keys, self@pretty_name_col, name = code_name)
         ifelse(x %in% names(keys_chr), keys_chr[x], x)
       }
     })

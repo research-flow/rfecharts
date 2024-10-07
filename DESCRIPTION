@@ -8,3 +8,6 @@ Description: Echarts are used for shiny applications in Research Flow Kft. to vi
   faster than creating each plot in one server.
 Encoding: UTF-8
 LazyData: true
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
