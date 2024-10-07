@@ -24,11 +24,12 @@ name_cleaner <- S7::new_class(
     if (missing(keys)) {
       keys <- tibble::tribble(
         ~ code_name, ~ pretty_hun_name, ~ pretty_eng_name,
-        "BETEG_kum", "Kumulált betegszám", "Cumulative number of patients",
-        "BETEG_szazalek", "Betegszám", "Number of patients",
-        "BETEG_PER_ORVOS", "Egy orvosra jutó betegszám", "Number of patients per doctor"
+        "cumn_patient", "Kumulált betegszám", "Cumulative number of patients",
+        "n_patient", "Betegszám", "Number of patients",
+        "patient_per_doctor", "Egy orvosra jutó betegszám", "Number of patients per doctor",
+        "percentile", "Percentilis", "Percentile"
       )
     }
-    S7::new_object(S7_object(), language = language, keys = keys)
+    S7::new_object(S7::S7_object(), language = language, keys = keys)
   }
 )
