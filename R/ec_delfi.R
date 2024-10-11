@@ -1,23 +1,70 @@
-ec_delfi <- function(data, value, n, colors = NULL, nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shindata::isRunning(), theme = RFecharts::rf_echarts_theme) {
+ec_delfi <- function(data, value, n, colors = NULL, consensus = 5, show_positives = "inclusive", nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shindata::isRunning(), theme = RFecharts::rf_echarts_theme) {
   theme <- theme %||% \(x) x
-  
+
   data <- data |>
+    ungroup() |> 
     drop_na({{ value }}, {{ n }}) |> 
     mutate(
-      across({{ value }}, as_factor),
+      across({{ value}}, as_factor),
       percent = {{n}} / sum({{n}}),
+      borderColor = ifelse({{ value }} == nth({{ value }}, consensus), "black", NA)
     ) |>
-    arrange({{ value }}) |> 
-    select(value = {{ value }}, percent, n = {{ n }}, color, borderColor)
+    arrange(desc({{ value }})) |> 
+    select(value = {{ value }}, percent, n = {{ n }}, borderColor, everything()) |> 
+    mutate(empty_x_col = "")
 
-  print(data)
-
-  if (is.null(colors)) {
-    data$colors <- co@get(1:nrow(data))
+  if (length(colors) != nrow(data)) {
+    cli::cli_warn("The number of colors must be equal to the number of rows in the data. Using default colors instead.")
+    colors <- NULL
   }
 
+  if (is.null(colors)) {
+    if (nrow(data) == 5) {
+      colors <- co@get(c(4, 1, 3, 2, 5))
+    } else {
+      colors <- co@get(1:nrow(data))
+    }
+  }
+
+  # select the top 50%
+  if (show_positives == "inclusive") {
+    positives <- data |> 
+      slice_max(value, prop = .5)
+
+    n_positives <- nrow(positives)
+    rate_positives <- sum(positives$percent)
+  } else if (show_positives == "exclusive") {
+    negatives <- data |> 
+      slice_min(value, prop = .5)
+
+    n_positives <- nrow(data) - nrow(negatives)
+    rate_positives <- 1 - sum(negatives$percent)
+  }
+
+  if (show_positives == "inclusive" | show_positives == "exclusive") {
+    if (nc@language == "hun") { 
+      positive_title = str_c("Top ", n_positives, " százaléka: ", scales::percent(rate_positives))
+    } else if (nc@language == "eng") {
+      positive_title = str_c("Top ", n_positives, " positive values: ", scales::percent(rate_positives))
+    } else {
+      positive_title = str_c("Top ", n_positives, " százaléka: ", scales::percent(rate_positives))
+    }
+    e_show_positives <- function(e) {
+      echarts4r::e_mark_line(e, data = list(xAxis = 1 - rate_positives), 
+                   precision= 5,
+                   silent = TRUE,
+                   lineStyle = list(color = "black"),
+                   symbolSize = 0,
+                   label = list(fontSize = 14,
+                                fontWeight = "bold"),
+                   title = positive_title)
+    }
+  } else {
+    e_show_positives <- function(e) e
+  }
+  
   data |> 
-    mutate(empty_x_col = "") |> 
+    group_by(value) |> 
     e_charts(x = empty_x_col) |>
     e_bar(percent, stack = "group", bind = n, 
       label = list(show = TRUE,
@@ -26,6 +73,7 @@ ec_delfi <- function(data, value, n, colors = NULL, nc = RFecharts::name_cleaner
           shadowColor = "black",
           borderWidth = 2
       )) |> 
+    e_show_positives() |> 
     e_color(colors) |> 
     e_legend(bottom = 21) |>
     e_add_nested("itemStdatale", color, borderColor) |>
@@ -45,5 +93,6 @@ ec_delfi <- function(data, value, n, colors = NULL, nc = RFecharts::name_cleaner
                     ")
     ) |>
     e_flip_coords() |>
-    common_echarts_utils()
+    theme()
+  
 }
