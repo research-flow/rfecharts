@@ -1,17 +1,5 @@
-ec_delfi <- function(data, value, n, colors = NULL, consensus = 5, show_positives = "inclusive", nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shindata::isRunning(), theme = RFecharts::rf_echarts_theme) {
+ec_delfi <- function(data, colors = NULL, consensus = 5, show_positives = "inclusive", nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shindata::isRunning(), theme = RFecharts::rf_echarts_theme) {
   theme <- theme %||% \(x) x
-
-  data <- data |>
-    ungroup() |> 
-    drop_na({{ value }}, {{ n }}) |> 
-    mutate(
-      across({{ value}}, as_factor),
-      percent = {{n}} / sum({{n}}),
-      borderColor = ifelse({{ value }} == nth({{ value }}, consensus), "black", NA)
-    ) |>
-    arrange(desc({{ value }})) |> 
-    select(value = {{ value }}, percent, n = {{ n }}, borderColor, everything()) |> 
-    mutate(empty_x_col = "")
 
   if (length(colors) != nrow(data)) {
     cli::cli_warn("The number of colors must be equal to the number of rows in the data. Using default colors instead.")
@@ -29,13 +17,13 @@ ec_delfi <- function(data, value, n, colors = NULL, consensus = 5, show_positive
   # select the top 50%
   if (show_positives == "inclusive") {
     positives <- data |> 
-      slice_max(value, prop = .5)
+      dplyr::slice_max(value, prop = .5)
 
     n_positives <- nrow(positives)
     rate_positives <- sum(positives$percent)
   } else if (show_positives == "exclusive") {
     negatives <- data |> 
-      slice_min(value, prop = .5)
+      dplyr::slice_min(value, prop = .5)
 
     n_positives <- nrow(data) - nrow(negatives)
     rate_positives <- 1 - sum(negatives$percent)
@@ -43,14 +31,14 @@ ec_delfi <- function(data, value, n, colors = NULL, consensus = 5, show_positive
 
   if (show_positives == "inclusive" | show_positives == "exclusive") {
     if (nc@language == "hun") { 
-      positive_title = str_c("Top ", n_positives, " százaléka: ", scales::percent(rate_positives))
+      positive_title = stringr::str_c("Top ", n_positives, " százaléka: ", scales::percent(rate_positives))
     } else if (nc@language == "eng") {
-      positive_title = str_c("Top ", n_positives, " positive values: ", scales::percent(rate_positives))
+      positive_title = stringr::str_c("Top ", n_positives, " positive values: ", scales::percent(rate_positives))
     } else {
-      positive_title = str_c("Top ", n_positives, " százaléka: ", scales::percent(rate_positives))
+      positive_title = stringr::str_c("Top ", n_positives, " százaléka: ", scales::percent(rate_positives))
     }
     e_show_positives <- function(e) {
-      echarts4r::e_mark_line(e, data = list(xAxis = 1 - rate_positives), 
+      e_mark_line(e, data = list(xAxis = 1 - rate_positives), 
                    precision= 5,
                    silent = TRUE,
                    lineStyle = list(color = "black"),
@@ -64,7 +52,8 @@ ec_delfi <- function(data, value, n, colors = NULL, consensus = 5, show_positive
   }
   
   data |> 
-    group_by(value) |> 
+    dplyr::mutate(empty_x_col = "") |> 
+    dplyr::group_by(value) |> 
     e_charts(x = empty_x_col) |>
     e_bar(percent, stack = "group", bind = n, 
       label = list(show = TRUE,
