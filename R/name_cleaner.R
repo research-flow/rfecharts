@@ -14,6 +14,29 @@ name_cleaner <- S7::new_class(
         keys_chr <- dplyr::pull(self@keys, self@pretty_name_col, name = code_name)
         ifelse(x %in% names(keys_chr), keys_chr[x], x)
       }
+    }),
+    dec.mark = S7::new_property(getter = function(self) {
+      if (self@language == "hun") {
+        ","
+      } else {
+        "."
+      }
+    }),
+    big.mark = S7::new_property(getter = function(self) {
+      if (self@language == "hun") {
+        " "
+      } else {
+        ","
+      }
+    }),
+    percent = S7::new_property(getter = function(self) {
+      \(x, accuracy = 1, ...) scales::percent(x, accuracy = accuracy, decimal.mark = self@dec.mark, big.mark = self@big.mark, ...)
+    }),
+    number = S7::new_property(getter = function(self) {
+      \(x, accuracy = NULL, ...) {
+        if (is.null(accuracy)) accuracy <- ifelse(all(x %% 1 == 0, na.rm = TRUE), 1, .01) # integers?
+        scales::number(x, accuracy = accuracy, decimal.mark = self@dec.mark, big.mark = self@big.mark, ...)
+      }
     })
   ),
   validator = function(self) {
