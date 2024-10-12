@@ -27,7 +27,14 @@ name_cleaner <- S7::new_class(
         "cumn_patient", "Kumulált betegszám", "Cumulative number of patients",
         "n_patient", "Betegszám", "Number of patients",
         "patient_per_doctor", "Egy orvosra jutó betegszám", "Number of patients per doctor",
-        "percentile", "Percentilis", "Percentile"
+        "percentile", "Percentilis", "Percentile",
+        "prev", "Folytató beteg", "Prevalence",
+        "uj", "Incidens beteg", "Incidence",
+        "elhagyo", "Terápiaelhagyás miatt nem megvalósult \n(előző időszak elhagyó)", "Lost to follow-up due to illness",
+        "elhagyo_elhagyo", "Elhagyó beteg", "Lost to follow-up",
+        "elhagyo_halal", "Halálozás", "Death",
+        "uj_switch", "Incidens: változott", "Incidence: switch",
+        "uj_uj", "Incidens: új", "Incidence: new"
       )
     }
     S7::new_object(S7::S7_object(), language = language, keys = keys)
