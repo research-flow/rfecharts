@@ -2,6 +2,14 @@
 
 A collection of R functions for creating interactive charts using the ECharts library.
 
+## Installation
+
+You can install the released version of RFecharts from GitLab.
+
+```r
+remotes::install_gitlab(auth_token = "your_token", repo = "visualisation/rfecharts", host = "http://192.xxx.xx.x")
+```
+
 ## Usage
 
 The RF ECharts package provides a range of functions for creating different types of charts, including:
