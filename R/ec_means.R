@@ -1,10 +1,35 @@
+#' ec_means
+#' 
+#' @description
+#' Visualize means of different groups (brands) by several y values (Qs).
+#' 
+#' @param data data.frame
+#' @param y Variable to plot on y axis.
+#' @param x Variable to plot on x axis.
+#' @param group Variable to group by (fill).
+#' @param colors Custom colors. Same length as number of groups.
+#' @param xlim Default is `c(0, 5)`
+#' @param xlab Default is `NULL`.
+#' @param nc `name_cleaner` object. Default is `RFecharts::name_cleaner()`
+#' @param co `color` object. Default is `RFecharts::color()`
+#' @param as_json Return as json? By default `shiny::isRunning()`, thus it will appear as chart in your console, but as json in the shiny app.
+#' @param theme Commonly used RF modification for the end of the chart. Default is `RFecharts::rf_echarts_theme`.
+#'
+#' @return echarts4r chart
+#' @export
+#'
+#' @examples
+#' example_means |> 
+#'   ec_means(x = csatorna_egyedi_atlag, group = brand, y = valasz_szovege, xlab = "uj")
+#'
+
 ec_means <- function(data, y, x, group, colors = NULL, xlim = c(0, 5), xlab = NULL, nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shiny::isRunning(), theme = RFecharts::rf_echarts_theme) {
 
   data <- data |>
-    select(y = {{y}}, x = {{x}}, group = {{group}})
+    dplyr::select(y = {{y}}, x = {{x}}, group = {{group}})
 
   y_axis_values <- data |> 
-    distinct(y) |> 
+    dplyr::distinct(y) |> 
     nrow() |>
     magrittr::add(-1) |> 
     seq(from = 0)
@@ -19,20 +44,21 @@ ec_means <- function(data, y, x, group, colors = NULL, xlim = c(0, 5), xlab = NU
 
   # colors
   colors_to_group <- data |> 
-    distinct(group) |> 
-    drop_na()
+    dplyr::distinct(group) |> 
+    tidyr::drop_na()
 
   if (is.null(colors)) {
     colors <- co@get(1:nrow(colors_to_group))
   }
 
   chart <- data |> 
-    mutate(
-      y = fct_relabel(y, str_wrap, 40),
+    dplyr::mutate(
+      y = forcats::fct_relabel(y, nc@prettify),
+      y = forcats::fct_relabel(y, stringr::str_wrap, 40),
       label = nc@number(x)) |> 
-    arrange(desc(y)) |> 
-    left_join(colors_to_group, by = join_by(group)) |>
-    group_by(group) |>
+    dplyr::arrange(dplyr::desc(y)) |> 
+    dplyr::left_join(colors_to_group, by = dplyr::join_by(group)) |>
+    dplyr::group_by(group) |>
     e_charts(x = y, reorder = FALSE) |>
     e_line(x, 
            bind = label,
@@ -69,6 +95,7 @@ ec_means <- function(data, y, x, group, colors = NULL, xlim = c(0, 5), xlab = NU
                   title = "")
   }
   
-  chart
-  
+  chart |> 
+    theme() |> 
+    (\(x) if (as_json) echarts4r::e_inspect(x, json = T) else x) ()
 }

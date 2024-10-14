@@ -1,5 +1,27 @@
-ec_prevalent_dist <- function(data, colors = NULL,nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shiny::isRunning(), theme = RFecharts::rf_echarts_theme) {
-  theme <- theme %||% \(x) x
+#' ec_prevalent_dist
+#'
+#' Visualize prevalent distribution data.
+#'
+#' @description This function creates an echarts4r chart to display prevalent distribution data.
+#'
+#' @param data data.frame containing the data to be visualized.
+#' @param colors vector of colors to use for the chart. Default is NULL.
+#' @param nc `name_cleaner` object. Default is `RFecharts::name_cleaner()`.
+#' @param co `color` object. Default is `RFecharts::color()`.
+#' @param as_json Return as json? By default `shiny::isRunning()`, thus it will appear as chart in your console, but as json in the shiny app.
+#' @param theme Commonly used RF modification for the end of the chart. Default is `RFecharts::rf_echarts_theme`.
+#'
+#' @return echarts4r chart
+#'
+#' @export
+#'
+#' @examples
+#' example_prevalent_dist |>  
+#'   prep_prevalence_dist(IDOSZAK, ADAT_TIPUS, Value) |> 
+#'   ec_prevalent_dist(nc = name_cleaner(language = "hun"))
+
+ec_prevalent_dist <- function(data, colors = NULL, nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shiny::isRunning(), theme = RFecharts::rf_echarts_theme) {
+  if (is.null(theme)) theme <- \(x) x
 
   if (nc@language == "eng") {
     prev_label <- "Prevalent"
@@ -34,7 +56,7 @@ ec_prevalent_dist <- function(data, colors = NULL,nc = RFecharts::name_cleaner()
     dplyr::left_join(color_to_types, by = dplyr::join_by(type)) |>
     dplyr::group_by(type) |> 
     tidyr::replace_na(list(type = "", label = "")) |>
-    dplyr::mutate(type = fct_relabel(type, nc@prettify)) |>
+    dplyr::mutate(type = forcats::fct_relabel(type, nc@prettify)) |>
     e_chart(time) |> 
     e_bar(prev_value, stack ="type_2",
           name = "Prevalens",
@@ -69,5 +91,6 @@ ec_prevalent_dist <- function(data, colors = NULL,nc = RFecharts::name_cleaner()
     ) |> 
     e_axis(index = 1, show = F) |> 
     e_tooltip() |> 
-    theme()
+    theme() |> 
+    (\(x) if (as_json) echarts4r::e_inspect(x, json = T) else x) ()
 }

@@ -1,7 +1,32 @@
-ec_delfi <- function(data, colors = NULL, consensus = 5, show_positives = "inclusive", nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shindata::isRunning(), theme = RFecharts::rf_echarts_theme) {
-  theme <- theme %||% \(x) x
+#' ec_delfi
+#'
+#' Visualize DELFI data.
+#'
+#' @description This function creates an echarts4r chart to display DELFI data.
+#'
+#' @param data data.frame containing the data to be visualized.
+#' @param nc `name_cleaner` object. Default is `RFecharts::name_cleaner()`.
+#' @param colors vector of colors to use for the chart.
+#' @param show_positives string indicating how to show positives. Options are "inclusive", "exclusive", or "none".
+#'
+#' @return echarts4r chart
+#'
+#' @export
+#'
+#' @examples
+#' example_delfi |>
+#'   prep_delfi(ertek_name, count) |> 
+#'   ec_delfi(show_positives = "inclusive")
+#' 
+#' example_delfi |>
+#'   prep_delfi(ertek_name, count) |> 
+#'   ec_delfi(show_positives = "exclusive")
+#' 
+#' 
+ec_delfi <- function(data, colors = NULL, show_positives = "inclusive", nc = RFecharts::name_cleaner(), co = RFecharts::color(), as_json = shiny::isRunning(), theme = RFecharts::rf_echarts_theme) {
+  if (is.null(theme)) theme <- \(x) x
 
-  if (length(colors) != nrow(data)) {
+  if (!is.null(colors) & length(colors) != nrow(data)) {
     cli::cli_warn("The number of colors must be equal to the number of rows in the data. Using default colors instead.")
     colors <- NULL
   }
@@ -14,14 +39,22 @@ ec_delfi <- function(data, colors = NULL, consensus = 5, show_positives = "inclu
     }
   }
 
+  color_to_value <- data |> 
+    dplyr::ungroup() |>
+    dplyr::distinct(value) |>
+    dplyr::mutate(color = colors)
+
+  data <- data |> 
+    dplyr::left_join(color_to_value, by = "value")
+
   # select the top 50%
-  if (show_positives == "inclusive") {
+  if (show_positives == "exclusive") {
     positives <- data |> 
       dplyr::slice_max(value, prop = .5)
 
     n_positives <- nrow(positives)
     rate_positives <- sum(positives$percent)
-  } else if (show_positives == "exclusive") {
+  } else if (show_positives == "inclusive") {
     negatives <- data |> 
       dplyr::slice_min(value, prop = .5)
 
@@ -52,7 +85,10 @@ ec_delfi <- function(data, colors = NULL, consensus = 5, show_positives = "inclu
   }
   
   data |> 
-    dplyr::mutate(empty_x_col = "") |> 
+    dplyr::mutate(
+      empty_x_col = "",
+      value = forcats::fct_relabel(value, nc@prettify)
+    ) |> 
     dplyr::group_by(value) |> 
     e_charts(x = empty_x_col) |>
     e_bar(percent, stack = "group", bind = n, 
@@ -70,7 +106,7 @@ ec_delfi <- function(data, colors = NULL, consensus = 5, show_positives = "inclu
     axisTick = list(show=FALSE)) |>
     e_y_axis(max = 1,
     formatter = RFecharts::formatter("percent", language = nc@language)) |>
-    e_title(subtext = str_c("N = ",
+    e_title(subtext = stringr::str_c("N = ",
                   sum(data$n))
     ) |>
     e_tooltip(trigger = "axis",
@@ -82,6 +118,7 @@ ec_delfi <- function(data, colors = NULL, consensus = 5, show_positives = "inclu
                     ")
     ) |>
     e_flip_coords() |>
-    theme()
+    theme() |> 
+    (\(x) if (as_json) echarts4r::e_inspect(x, json = T) else x) ()
   
 }

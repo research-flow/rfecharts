@@ -1,3 +1,36 @@
+#' color Class
+#'
+#' The color class allows you to get a specific color from the built-in palettes or create a new color palette.
+#'
+#' @description This class provides a way to work with colors in your application.
+#'
+#' @section Methods:
+#'   \describe{
+#'     \item{\code{get}}{Retrieve a specific color from the palette.}
+#'   }
+#'
+#' @section Properties:
+#'   \describe{
+#'     \item{\code{names_for_hex}}{A data frame containing color names and their corresponding hex codes.}
+#'     \item{\code{codes_for_names}}{A data frame containing color codes and their corresponding names.}
+#'   }
+#' 
+#' @examples
+#' co <- RFecharts::color()
+#' 
+#' co@get(1, alpha =.2)
+#' co@get(1:10)
+#' co@get(c("high", "green"))
+#' 
+#' # modify the palette
+#' co@names_for_hex <- co@names_for_hex |> 
+#'   dplyr::add_row(color_name = "new_color", hex = "#824bac")
+#' 
+#' co@get("new_color")
+#' 
+#' @export
+#' 
+
 color <- S7::new_class(
   name = "color",
   properties = list(
@@ -9,7 +42,7 @@ color <- S7::new_class(
           if (max(x) > nrow(self@names_for_hex)) {
             cli::cli_alert_warning("You are trying to access a color that is not
                                    in the color palette.")
-            # TODO solution for this
+            # solution for this?
           }
           dplyr::pull(self@names_for_hex, hex)[x]
         } else {

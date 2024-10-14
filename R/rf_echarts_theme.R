@@ -1,3 +1,9 @@
+#' Custom theme for echarts
+#'
+#' @param chart echarts4r chart
+#' @return echarts4r chart
+#' @export
+
 rf_echarts_theme <- function(chart) {
   chart |>
     echarts4r::e_toolbox_feature(feature = "saveAsImage") |>
@@ -11,3 +17,4 @@ rf_echarts_theme <- function(chart) {
       color = "#8D807788"
     )
 }
+
