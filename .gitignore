@@ -3,3 +3,7 @@
 .Rhistory
 *RDS
 *rds
+.vscode/settings.json
+inst/doc
+test/*
+!test/*.R

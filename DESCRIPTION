@@ -4,11 +4,12 @@ Title: Echarts for Research Flow Kft.
 Version: 0.1.0
 Author: Marcell Granát
 Maintainer: Marcell Granát <granatcellmar98@gmail.com>
-Description: Echarts are used for shiny applications in Research Flow Kft. to visualize data 
-  faster than creating each plot in one server.
+Description: Echarts templates are used for shiny applications in Research Flow Kft. to visualize data.
 Encoding: UTF-8
 LazyData: true
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends:
@@ -20,9 +21,9 @@ Imports:
     tidyr,
     readr,
     stringr,
-    broom,
-    pacman,
     tibble,
     purrr,
     S7,
     rlang
+RoxygenNote: 7.2.3
+VignetteBuilder: knitr
